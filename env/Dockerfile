@@ -1,5 +1,5 @@
 #PHP IMAGE
-FROM php:7.4-apache-buster
+FROM php:8.1-apache-buster
 
 #SETTING UP THE SYSTEM
 RUN apt-get update \
@@ -35,7 +35,6 @@ RUN apt-get update \
     lsof \
     libsodium-dev \
     libzip-dev \
-    parallel \
     && apt-get update \
     && apt-get clean all
 
@@ -45,10 +44,9 @@ ENV _HOME_DIRECTORY=/home/${_USER}
 RUN useradd -m ${_USER} && echo "${_USER}:${_USER}" | chpasswd && chsh ${_USER} -s /bin/bash && adduser ${_USER} sudo
 
 #PHP EXTENSIONS
-RUN docker-php-ext-install -j$(nproc) iconv soap sockets \
+RUN docker-php-ext-install -j$(nproc) soap sockets \
     && docker-php-ext-configure gd --enable-gd --with-freetype --with-jpeg --with-webp \
-    && docker-php-ext-install -j$(nproc) gd bcmath pdo_mysql xsl intl zip \
-    && pecl install libsodium-2.0.22
+    && docker-php-ext-install -j$(nproc) gd bcmath pdo_mysql xsl intl zip
 
 #GIT
 RUN apt-get update \
@@ -79,11 +77,11 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 #COMPOSER 2 (additional)
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer2 --2
 
-#COMPOSER link (1 is default for PHP 7.4)
-RUN ln -s /usr/local/bin/composer1 /usr/local/bin/composer
+#COMPOSER link (2 is default for PHP 8.1)
+RUN ln -s /usr/local/bin/composer2 /usr/local/bin/composer
 
 #XDEBUG
-RUN pecl install xdebug-2.9.0 \
+RUN pecl install xdebug \
     && echo ";zend_extension=xdebug.so" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
     && echo "xdebug.remote_host=host.docker.internal" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
     && echo "xdebug.remote_enable=1" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
@@ -91,7 +89,8 @@ RUN pecl install xdebug-2.9.0 \
     && echo "xdebug.max_nesting_level=10000" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
     && echo "xdebug.idekey=PHPSTORM" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 COPY ./misc/xdebug-php.sh /usr/local/bin/xdebug-php.sh
-COPY ./misc/prepare-mtf.sh /usr/local/bin/prepare-mtf.sh
+
+# COMPOSER VERSION SWITCHER
 COPY ./misc/composer-link.sh /usr/local/bin/composer-link.sh
 
 #CODESNIFFER
@@ -102,7 +101,7 @@ RUN pear install PHP_CodeSniffer \
 
 #SENDMAIL
 RUN echo "sendmail_path=/usr/bin/msmtp -t" >> /usr/local/etc/php/conf.d/mailcatcher.ini \
-    && echo "memory_limit=4G" >> /usr/local/etc/php/conf.d/custom.ini \
+    && echo "memory_limit=2G" >> /usr/local/etc/php/conf.d/custom.ini \
     && echo "max_input_vars=10000" >> /usr/local/etc/php/conf.d/custom.ini \
     && echo "account default" >> /etc/msmtprc \
     && echo "host mailcatcher" >> /etc/msmtprc \

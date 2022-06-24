@@ -72,7 +72,7 @@ RUN version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
 
 #COMPOSER
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer1 --1\
-    && apt -qy install $PHPIZE_DEPS && mkdir /${_HOME_DIRECTORY}/.composer \
+    && apt -qy install $PHPIZE_DEPS && mkdir /${_HOME_DIRECTORY}/.composer
 
 #COMPOSER 2 (additional)
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer2 --2
